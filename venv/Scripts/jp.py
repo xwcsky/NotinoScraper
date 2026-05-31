@@ -1,4 +1,4 @@
-#!C:\Users\UwU\Desktop\NotinoScraper\venv\Scripts\python.exe
+#!C:\Users\bjurk\Desktop\NotinoScraper\NotinoScraper\venv\Scripts\python.exe
 
 import sys
 import json

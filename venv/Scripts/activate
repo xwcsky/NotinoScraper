@@ -35,7 +35,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\UwU\Desktop\NotinoScraper\venv"
+VIRTUAL_ENV="C:\Users\bjurk\Desktop\NotinoScraper\NotinoScraper\venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
