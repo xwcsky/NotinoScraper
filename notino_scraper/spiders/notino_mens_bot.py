@@ -10,10 +10,8 @@ import logging
 logging.getLogger('urllib3.connectionpool').setLevel(logging.WARNING)
 
 class NotinoMensBotSpider(scrapy.Spider):
-    # NOWA NAZWA BOTA!
     name = "notino_mens_bot"
     
-    # NOWY LINK STARTOWY!
     start_urls = ["https://www.notino.pl/perfumy-mezczyzni/"]
     handle_httpstatus_list = [403, 301, 302]
 
@@ -21,10 +19,7 @@ class NotinoMensBotSpider(scrapy.Spider):
         self.logger.info(">>> ODPALAMY BOTA (MĘSKIE PERFUMY) <<<")
         
         options = uc.ChromeOptions()
-        # options.add_argument('--headless') 
-        
-        # Pamiętaj o version_main=148 jeśli nie aktualizowałeś Chrome
-        driver = uc.Chrome(options=options, version_main=148)
+        driver = uc.Chrome(options=options, version_main=148) #wersja 148 chrome
         
         try:
             numer_strony = 1
@@ -33,7 +28,6 @@ class NotinoMensBotSpider(scrapy.Spider):
                 if numer_strony == 1:
                     url = response.url
                 else:
-                    # TWÓJ NOWY LINK DLA MĘŻCZYZN (końcówka 55549)
                     url = f"https://www.notino.pl/perfumy-mezczyzni/?f={numer_strony}-1-55544-55549"
                 
                 self.logger.info(f">>> Wczytuję STRONĘ {numer_strony} ({url}) <<<")
@@ -44,7 +38,7 @@ class NotinoMensBotSpider(scrapy.Spider):
                         EC.presence_of_element_located((By.CSS_SELECTOR, 'div[data-testid="product-container"]'))
                     )
                 except Exception as e:
-                    self.logger.info(f"!!! Koniec czasu lub brak perfum na stronie {numer_strony}. Kończę scraper.")
+                    self.logger.info(f"Brak perfum na stronie {numer_strony}.")
                     break 
                     
                 time.sleep(2) 
@@ -55,9 +49,14 @@ class NotinoMensBotSpider(scrapy.Spider):
                 if len(produkty) == 0:
                     break
                     
-                self.logger.info(f"!!! SSAM DANE: Znalazłem {len(produkty)} produktów na stronie {numer_strony} !!!")
+                self.logger.info(f"Znalazłem {len(produkty)} produktów na stronie {numer_strony}")
                 
                 for p in produkty:
+                    href = p.css('a::attr(href)').get()
+                    
+                    if not href:
+                        continue
+                        
                     raw_opinii = p.xpath('.//span[@data-testid="product-ratings-numReview"]//text()').getall()
                     czysta_liczba_opinii = "".join(raw_opinii).replace("(", "").replace(")", "").strip()
 
@@ -67,7 +66,7 @@ class NotinoMensBotSpider(scrapy.Spider):
                         "cena": p.css('span[data-testid="price-component"]::text').get(),
                         "ocena": p.css('span[data-testid="product-ratings-num"]::text').get(),
                         "liczba_opinii": czysta_liczba_opinii,
-                        "link": "https://www.notino.pl" + p.css('a::attr(href)').get()
+                        "link": "https://www.notino.pl" + href
                     }
                 
                 numer_strony += 1

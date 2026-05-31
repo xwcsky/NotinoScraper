@@ -14,34 +14,27 @@ def pobierz_top_5(nazwa_pliku):
         ocena_str = produkt.get("ocena")
         opinie_str = produkt.get("liczba_opinii")
 
-        # Zamiana oceny "4,8" na liczbę zmiennoprzecinkową 4.8
         try:
             ocena = float(ocena_str.replace(',', '.')) if ocena_str else 0.0
         except ValueError:
             ocena = 0.0
 
-        # Zabezpieczenie przed brakiem opinii
         try:
             opinie = int(opinie_str) if opinie_str else 0
         except ValueError:
             opinie = 0
 
-        # Zwracamy krotkę: najpierw sortuje po ocenie, jak jest remis to po liczbie opinii
         return (ocena, opinie)
 
-    # Odrzucamy produkty, które w ogóle nie mają opinii/ocen
     dane_z_ocenami = [p for p in dane if p.get("ocena") is not None]
     
-    # Sortujemy od najlepszych (reverse=True)
     posortowane = sorted(dane_z_ocenami, key=wylicz_punkty, reverse=True)
     
     return posortowane[:5]
 
-# Wczytujemy dane
 top_damskie = pobierz_top_5("perfumy_damskie.json")
 top_meskie = pobierz_top_5("perfumy_meskie.json")
 
-# Generujemy piękny kod strony HTML z użyciem CSS
 html = """
 <!DOCTYPE html>
 <html lang="pl">
@@ -69,7 +62,7 @@ html = """
     </style>
 </head>
 <body>
-    <h1>🏆 Złoty Ranking Notino (Na bazie Twoich danych!) 🏆</h1>
+    <h1>🏆 Złoty Ranking Notino (Na bazie pobranych danych!) 🏆</h1>
     <div class="container">
         <div class="column womens">
             <h2>🌸 Najlepsze Damskie</h2>
@@ -110,7 +103,6 @@ html += """
 </html>
 """
 
-# Zapisanie do pliku i odpalenie w przeglądarce
 sciezka_pliku = os.path.abspath("ranking_notino.html")
 with open(sciezka_pliku, "w", encoding="utf-8") as f:
     f.write(html)

@@ -1,5 +1,12 @@
+#odpalanie na nowym pc 
+#usuwamy venv
+#python -m venv venv
+#.\venv\Scripts\activate
+#pip install scrapy undetected-chromedriver
+#scrapy crawl notino_bot -O perfumy_damskie.json ; scrapy crawl notino_mens_bot -O perfumy_meskie.json
+#python generator_rankingu.py
+
 import scrapy
-# MAGIA: Importujemy niewykrywalnego Chrome'a
 import undetected_chromedriver as uc
 from scrapy.selector import Selector
 from selenium.webdriver.common.by import By
@@ -13,48 +20,43 @@ logging.getLogger('urllib3.connectionpool').setLevel(logging.WARNING)
 class NotinoBotSpider(scrapy.Spider):
     name = "notino_bot"
     start_urls = ["https://www.notino.pl/perfumy-kobiety/"]
-    handle_httpstatus_list = [403, 301, 302]
+    handle_httpstatus_list = [403, 301, 302] #ignorujemy te błedy
 
     def parse(self, response):
-        self.logger.info(">>> ODPALAMY BOTA (UNDETECTED CHROME - OMIJANIE CLOUDFLARE) <<<")
+        self.logger.info(">>> ODPALAMY BOTA <<<")
         
-        # Konfiguracja Niewykrywalnego Chrome'a
         options = uc.ChromeOptions()
-        # options.add_argument('--headless') # Kiedy zadziała, możesz to odkomentować
-        
-        # Odpalamy ukrytą przeglądarkę
         driver = uc.Chrome(options=options, version_main=148)        
         try:
             numer_strony = 1
-            
+        
             while True:
                 if numer_strony == 1:
                     url = response.url
                 else:
-                    # Twój sprawdzony i idealnie działający link!
                     url = f"https://www.notino.pl/perfumy-kobiety/?f={numer_strony}-1-55544-55545"
                 
                 self.logger.info(f">>> Wczytuję STRONĘ {numer_strony} ({url}) <<<")
                 driver.get(url)
                 
-                try:
-                    # Czekamy na kafelki z perfumami
+                try: #czekamy 30 sekund w razie potwierdzenia anty-bot
                     WebDriverWait(driver, 30).until(
                         EC.presence_of_element_located((By.CSS_SELECTOR, 'div[data-testid="product-container"]'))
                     )
                 except Exception as e:
-                    self.logger.info(f"!!! Koniec czasu lub brak perfum na stronie {numer_strony}. Kończę scraper.")
+                    self.logger.info(f"Brak perfum na stronie {numer_strony}. ")
                     break 
                     
-                time.sleep(2) # Dajemy 2 sekundy na wyrenderowanie tekstów i cen
+                time.sleep(2) 
                 
+                #wyciąganie danych
                 sel = Selector(text=driver.page_source)
                 produkty = sel.css('div[data-testid="product-container"]')
                 
                 if len(produkty) == 0:
                     break
                     
-                self.logger.info(f"!!! SSAM DANE: Znalazłem {len(produkty)} produktów na stronie {numer_strony} !!!")
+                self.logger.info(f"Znalazłem {len(produkty)} produktów na stronie {numer_strony}")
                 
                 for p in produkty:
                     raw_opinii = p.xpath('.//span[@data-testid="product-ratings-numReview"]//text()').getall()
